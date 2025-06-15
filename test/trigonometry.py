@@ -3,24 +3,33 @@ import math
 
 app = Flask(__name__)
 
-def calculate_trigonometry(value, func, precision):
-    if func == "sin":
-        result = math.sin(math.radians(value)) if precision == "degrees" else math.sin(value)
-    elif func == "cos":
-        result = math.cos(math.radians(value)) if precision == "degrees" else math.cos(value)
-    elif func == "tan":
-        result = math.tan(math.radians(value)) if precision == "degrees" else math.tan(value)
-    return round(result, 4)
-
 @app.route('/', methods=['GET', 'POST'])
-def home():
+def index():
+    result = None
     if request.method == 'POST':
-        value = float(request.form['value'])
-        func = request.form['func']
-        precision = request.form['precision']
-        result = calculate_trigonometry(value, func, precision)
-        return render_template('result.html', result=result)
-    return render_template('index.html')
+        angle = float(request.form.get('angle'))
+        precision = int(request.form.get('precision'))
+        unit = request.form.get('unit')
+        func = request.form.get('function')
+        if unit == 'degrees':
+            angle = math.radians(angle)
+        try:
+            if func == 'sin':
+                result = round(math.sin(angle), precision)
+            elif func == 'cos':
+                result = round(math.cos(angle), precision)
+            elif func == 'tan':
+                result = round(math.tan(angle), precision)
+            elif func == 'cot':
+                tan_value = math.tan(angle)
+                if abs(tan_value) < 1e-15:
+                    result = 'Undefined'
+                else:
+                    result = round(1 / tan_value, precision)
+        except Exception as e:
+            result = f'Error: {str(e)}'
+
+    return render_template('index.html', result=result)
 
 if __name__ == '__main__':
     app.run(debug=True)
